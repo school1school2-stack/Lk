@@ -14,7 +14,6 @@
         :root {
             --primary: #4f46e5;
             --secondary: #06b6d4;
-            --accent: #f43f5e;
             --bg: #0f172a;
         }
 
@@ -37,61 +36,65 @@
             margin-bottom: 20px;
         }
 
-        h1 { text-align: center; margin-bottom: 25px; font-size: 1.6rem; color: var(--secondary); text-shadow: 0 0 10px rgba(6, 182, 212, 0.3); }
+        h1 { text-align: center; margin-bottom: 25px; font-size: 1.6rem; color: var(--secondary); }
 
         .section-label { font-size: 0.85rem; color: #94a3b8; margin: 15px 0 8px; display: block; }
 
-        /* أزرار الاختيار */
         .toggle-group {
-            display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 10px;
+            display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px;
         }
         .toggle-group input { display: none; }
         .toggle-group label {
             flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 9px; transition: 0.3s; font-size: 0.9rem;
         }
-        input:checked + label { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        input:checked + label { background: var(--primary); color: white; }
 
-        input[type="date"], input[type="text"] {
-            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155;
-            background: #1e293b; color: white; text-align: center; font-size: 1rem; outline: none;
+        /* تنسيق القوائم المنسدلة */
+        .dropdown-row {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
         }
-        input:focus { border-color: var(--secondary); }
+
+        select {
+            padding: 12px; border-radius: 12px; border: 1px solid #334155;
+            background: #1e293b; color: white; font-family: 'Cairo';
+            font-size: 0.9rem; outline: none; cursor: pointer;
+        }
 
         .calc-btn {
             width: 100%; padding: 15px; border-radius: 12px; border: none; margin-top: 20px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s;
         }
-        .calc-btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 10px 20px rgba(79, 102, 229, 0.3); }
+        .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(79, 102, 229, 0.3); }
 
-        /* النتائج */
-        .results { margin-top: 25px; display: none; animation: slideUp 0.5s ease; }
+        .results { margin-top: 25px; display: none; }
         .res-card {
             background: rgba(255,255,255,0.03); padding: 18px; border-radius: 15px; margin-bottom: 12px;
             border-right: 4px solid var(--secondary);
         }
-        .res-card h4 { font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
-        .res-card p { font-size: 1.2rem; font-weight: bold; color: #fff; }
+        .res-card h4 { font-size: 0.8rem; color: #94a3b8; }
+        .res-card p { font-size: 1.2rem; font-weight: bold; }
 
         footer {
             text-align: center; font-size: 0.95rem; color: #64748b;
-            padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 500px;
+            padding: 15px; width: 100%;
         }
         .name-tag { font-weight: bold; background: linear-gradient(to left, #818cf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1><i class="fa-solid fa-clock"></i> المحلل الزمني الذكي</h1>
+    <h1><i class="fa-solid fa-calendar-check"></i> المحلل الزمني الذكي</h1>
 
     <span class="section-label">1. نوع التقويم:</span>
     <div class="toggle-group">
-        <input type="radio" name="cal" id="miladi" value="g" checked onchange="toggleUI()">
+        <input type="radio" name="cal" id="miladi" value="g" checked onchange="initDateDropdowns()">
         <label for="miladi">ميلادي</label>
-        <input type="radio" name="cal" id="hijri" value="h" onchange="toggleUI()">
+        <input type="radio" name="cal" id="hijri" value="h" onchange="initDateDropdowns()">
         <label for="hijri">هجري</label>
     </div>
 
@@ -103,80 +106,92 @@
         <label for="modeTarget">المتبقي للتاريخ</label>
     </div>
 
-    <span class="section-label">3. أدخل التاريخ:</span>
-    <div id="inputArea">
-        <input type="date" id="dateVal">
+    <span class="section-label">3. حدد التاريخ من القائمة:</span>
+    <div class="dropdown-row">
+        <select id="day"></select>
+        <select id="month"></select>
+        <select id="year"></select>
     </div>
 
     <button class="calc-btn" onclick="execute()">تحليل البيانات</button>
 
     <div class="results" id="resBox">
-        <div class="res-card">
-            <h4 id="labelConv">التاريخ المقابل</h4>
-            <p id="valConv">-</p>
-        </div>
-        <div class="res-card" style="border-right-color: #22c55e;">
-            <h4 id="labelMain">النتيجة التحليلية</h4>
-            <p id="valMain">-</p>
-        </div>
+        <div class="res-card"><h4 id="labelConv">التاريخ المقابل</h4><p id="valConv">-</p></div>
+        <div class="res-card" style="border-right-color: #22c55e;"><h4 id="labelMain">النتيجة</h4><p id="valMain">-</p></div>
     </div>
 </div>
 
-<footer>
-    تم التطوير بواسطة <span class="name-tag">أبو نواف 2026</span>
-</footer>
+<footer>تم التطوير بواسطة <span class="name-tag">أبو نواف 2026</span></footer>
 
 <script>
-    function toggleUI() {
+    const hMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"];
+    const gMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
+    function initDateDropdowns() {
         const isH = document.getElementById('hijri').checked;
-        document.getElementById('inputArea').innerHTML = isH ? 
-            `<input type="text" id="dateVal" placeholder="مثال: 1447/05/20">` : 
-            `<input type="date" id="dateVal">`;
+        const dSelect = document.getElementById('day');
+        const mSelect = document.getElementById('month');
+        const ySelect = document.getElementById('year');
+
+        // الأيام
+        dSelect.innerHTML = "";
+        for(let i=1; i<=30; i++) dSelect.innerHTML += `<option value="${i}">${i}</option>`;
+
+        // الأشهر
+        mSelect.innerHTML = "";
+        const months = isH ? hMonths : gMonths;
+        months.forEach((m, idx) => {
+            mSelect.innerHTML += `<option value="${idx + 1}">${m}</option>`;
+        });
+
+        // السنوات
+        ySelect.innerHTML = "";
+        const currentY = isH ? 1447 : 2026;
+        const startY = isH ? 1350 : 1940;
+        const endY = isH ? 1500 : 2060;
+
+        for(let i=endY; i>=startY; i--) {
+            ySelect.innerHTML += `<option value="${i}" ${i === currentY ? 'selected' : ''}>${i}</option>`;
+        }
     }
 
     function execute() {
         const isH = document.getElementById('hijri').checked;
         const isAgeMode = document.getElementById('modeAge').checked;
-        const rawVal = document.getElementById('dateVal').value;
-        
-        if(!rawVal) return alert("يرجى إدخال التاريخ");
+        const d = document.getElementById('day').value;
+        const m = document.getElementById('month').value;
+        const y = document.getElementById('year').value;
 
-        let mDate = isH ? moment(rawVal, 'iYYYY/iMM/iDD') : moment(rawVal);
-        if(!mDate.isValid()) return alert("صيغة التاريخ غير صحيحة");
+        // صياغة التاريخ للتحليل
+        let mDate = isH ? moment(`${y}/${m}/${d}`, 'iYYYY/iM/iD') : moment(`${y}-${m}-${d}`, 'YYYY-M-D');
+        
+        if(!mDate.isValid()) return alert("هذا التاريخ غير موجود في التقويم!");
 
         const now = moment();
-        
-        // عرض التاريخ المقابل
-        document.getElementById('valConv').innerText = isH ? 
-            mDate.format('YYYY-MM-DD') + " ميلادي" : 
-            mDate.format('iYYYY/iMM/iDD') + " هجري";
+        document.getElementById('valConv').innerText = isH ? mDate.format('YYYY-MM-DD') + " ميلادي" : mDate.format('iYYYY/iMM/iDD') + " هجري";
 
         if (isAgeMode) {
-            // منطق حساب العمر
             if (mDate.isAfter(now)) {
-                document.getElementById('valMain').innerText = "عذراً، التاريخ في المستقبل!";
+                document.getElementById('valMain').innerText = "التاريخ في المستقبل!";
             } else {
-                const y = now.diff(mDate, 'years');
-                const m = now.diff(mDate.clone().add(y, 'years'), 'months');
-                const d = now.diff(mDate.clone().add(y, 'years').add(m, 'months'), 'days');
-                document.getElementById('valMain').innerText = `${y} سنة، ${m} شهر، ${d} يوم`;
+                const years = now.diff(mDate, 'years');
+                const months = now.diff(mDate.clone().add(years, 'years'), 'months');
+                const days = now.diff(mDate.clone().add(years, 'years').add(months, 'months'), 'days');
+                document.getElementById('valMain').innerText = `${years} سنة، ${months} شهر، ${days} يوم`;
             }
-            document.getElementById('labelMain').innerText = "العمر الحالي:";
         } else {
-            // منطق المتبقي حتى التاريخ
             if (mDate.isBefore(now)) {
-                document.getElementById('valMain').innerText = "عذراً، هذا التاريخ قد مضى!";
+                document.getElementById('valMain').innerText = "هذا التاريخ قد مضى!";
             } else {
-                const y = mDate.diff(now, 'years');
-                const m = mDate.diff(now.clone().add(y, 'years'), 'months');
-                const d = mDate.diff(now.clone().add(y, 'years').add(m, 'months'), 'days');
-                document.getElementById('valMain').innerText = `${y} سنة، ${m} شهر، ${d} يوم`;
+                const totalDays = mDate.diff(now, 'days');
+                document.getElementById('valMain').innerText = `متبقي ${totalDays} يوم`;
             }
-            document.getElementById('labelMain').innerText = "الوقت المتبقي:";
         }
-
         document.getElementById('resBox').style.display = 'block';
     }
+
+    // تشغيل القوائم عند التحميل لأول مرة
+    window.onload = initDateDropdowns;
 </script>
 
 </body>
