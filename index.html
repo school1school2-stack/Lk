@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة التاريخ والعمر الاحترافي</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --neon-blue: #00d2ff;
+            --neon-purple: #9d50bb;
+            --text-main: #f8fafc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #050b18 url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* الخلفية المتحركة */
+        .bg-animate {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #050b18 100%);
+            z-index: -1;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            background: linear-gradient(to left, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .input-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+        }
+
+        label { display: block; margin-bottom: 10px; color: #94a3b8; font-size: 0.9rem; }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input[type="date"]:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,210,255,0.3); }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.4s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(157, 80, 187, 0.4);
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+            display: none; /* مخفي افتراضياً */
+        }
+
+        .result-card {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 15px;
+            border-bottom: 3px solid var(--neon-blue);
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        .result-card:hover { background: rgba(255,255,255,0.07); }
+
+        .result-card.full-width { grid-column: span 2; border-bottom-color: #22c55e; }
+
+        .result-card i { font-size: 1.5rem; margin-bottom: 10px; color: var(--neon-blue); }
+
+        .val { font-size: 1.2rem; font-weight: 700; display: block; margin-top: 5px; }
+
+        .unit { font-size: 0.75rem; color: #64748b; margin-top: 5px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="bg-animate"></div>
+
+<div class="container">
+    <h1><i class="fa-solid fa-calendar-check"></i> المحلل الزمني الذكي</h1>
+    
+    <div class="input-section">
+        <label>حدد تاريخ ميلادك الميلادي:</label>
+        <input type="date" id="dob">
+    </div>
+
+    <button onclick="processDate()">تحليل البيانات الآن</button>
+
+    <div class="result-grid" id="resultGrid">
+        <div class="result-card full-width">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <h3>العمر الدقيق</h3>
+            <span class="val" id="exactAge">-</span>
+        </div>
+
+        <div class="result-card">
+            <i class="fa-solid fa-moon"></i>
+            <h3>التاريخ الهجري</h3>
+            <span class="val" id="hijriOutput">-</span>
+        </div>
+
+        <div class="result-card">
+            <i class="fa-solid fa-cake-candles"></i>
+            <h3>الميلاد القادم</h3>
+            <span class="val" id="nextBirthday">-</span>
+            <span class="unit" id="daysLeft"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function processDate() {
+        const dateVal = document.getElementById('dob').value;
+        if (!dateVal) return;
+
+        const birth = moment(dateVal);
+        const now = moment();
+
+        // 1. حساب العمر بالتفصيل
+        const years = now.diff(birth, 'years');
+        const months = now.diff(birth.clone().add(years, 'years'), 'months');
+        const days = now.diff(birth.clone().add(years, 'years').add(months, 'months'), 'days');
+
+        document.getElementById('exactAge').innerText = `${years} سنة و ${months} شهر و ${days} يوم`;
+
+        // 2. التحويل للهجري
+        const hDate = moment(dateVal).format('iYYYY/iMM/iDD');
+        document.getElementById('hijriOutput').innerText = hDate + ' هـ';
+
+        // 3. حساب المتبقي للميلاد القادم
+        let nextBD = moment(dateVal).year(now.year());
+        if (nextBD.isBefore(now, 'day')) {
+            nextBD.add(1, 'year');
+        }
+        
+        const diffDays = nextBD.diff(now, 'days');
+        document.getElementById('nextBirthday').innerText = nextBD.format('YYYY/MM/DD');
+        document.getElementById('daysLeft').innerText = `متبقي ${diffDays} يوم فقط`;
+
+        // إظهار النتائج
+        document.getElementById('resultGrid').style.display = 'grid';
+    }
+</script>
+
+</body>
+</html>
