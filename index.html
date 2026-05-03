@@ -15,16 +15,25 @@
         :root { --primary: #4f46e5; --secondary: #06b6d4; --accent: #fbbf24; --bg: #0f172a; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 10px; }
-        .top-bar { width: 100%; max-width: 600px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 24px; margin-bottom: 20px; text-align: center; backdrop-filter: blur(15px); }
+        
+        .top-bar { width: 100%; max-width: 600px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 24px; margin-bottom: 20px; text-align: center; backdrop-filter: blur(15px); }
         .time { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: var(--secondary); display: block; }
-        .prayer-countdown { margin-top: 10px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid var(--accent); border-radius: 15px; color: var(--accent); font-size: 1.1rem; font-weight: bold; }
+        
+        .prayer-section { margin-top: 10px; padding: 15px; background: rgba(251, 191, 36, 0.1); border: 1px solid var(--accent); border-radius: 15px; color: var(--accent); }
+        .prayer-countdown { font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; }
+        
+        .city-selector { margin-top: 10px; }
+        .city-selector select { background: #1e293b; color: white; border: 1px solid #334155; padding: 5px 15px; border-radius: 10px; font-family: 'Cairo'; cursor: pointer; outline: none; width: 150px; }
+
         .container { width: 100%; max-width: 500px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         .toggle-group { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
         .toggle-group input { display: none; }
         .toggle-group label { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 9px; font-size: 0.85rem; }
         input:checked + label { background: var(--primary); color: white; }
+
         .dropdown-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 8px; margin-top: 10px; }
-        select { padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; font-family: 'Cairo'; outline: none; }
+        select { padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; font-family: 'Cairo'; }
+        
         .calc-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; margin-top: 25px; background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; font-weight: bold; cursor: pointer; }
         .results { margin-top: 25px; display: none; }
         .res-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 12px; border-right: 5px solid var(--secondary); }
@@ -35,9 +44,29 @@
 
 <div class="top-bar">
     <span class="time" id="liveClock">00:00:00</span>
-    <div class="prayer-countdown" id="prayerTimer">جاري الحساب...</div>
-    <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;"><i class="fa-solid fa-location-dot"></i> الرياض - تقويم أم القرى</div>
-    <div id="liveDate" style="margin-top: 10px; font-size: 0.9rem; color: #94a3b8;"></div>
+    
+    <div class="prayer-section">
+        <div class="prayer-countdown" id="prayerTimer">جاري الحساب...</div>
+        <div class="city-selector">
+            <i class="fa-solid fa-city"></i>
+            <select id="citySelect" onchange="changeCity()">
+                <option value="24.7136,46.6753">الرياض</option>
+                <option value="21.4858,39.1925">جدة</option>
+                <option value="21.3891,39.8579">مكة المكرمة</option>
+                <option value="24.4672,39.6068">المدينة المنورة</option>
+                <option value="26.4207,50.0888">الدمام</option>
+                <option value="18.2164,42.5053">أبها</option>
+                <option value="27.5114,41.7208">حائل</option>
+                <option value="28.3835,36.5662">تبوك</option>
+                <option value="17.5062,44.1310">نجران</option>
+                <option value="16.8894,42.5511">جازان</option>
+                <option value="24.0232,38.1900">ينبع</option>
+                <option value="26.3260,43.9750">القصيم</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="liveDate" style="margin-top: 12px; font-size: 0.9rem; color: #94a3b8;"></div>
 </div>
 
 <div class="container">
@@ -61,49 +90,52 @@
 <footer>تم التطوير بواسطة <span style="color:var(--secondary); font-weight:bold;">أبو نواف 2026</span></footer>
 
 <script>
+    let currentLat = 24.7136;
+    let currentLon = 46.6753;
+
+    function changeCity() {
+        const coords = document.getElementById('citySelect').value.split(',');
+        currentLat = parseFloat(coords[0]);
+        currentLon = parseFloat(coords[1]);
+        updateClock(); 
+    }
+
     function updateClock() {
-        // 1. الحصول على الوقت الحالي
         const now = new Date();
         const m = moment(now);
         document.getElementById('liveClock').innerText = m.format('hh:mm:ss A');
         document.getElementById('liveDate').innerText = `${m.format('iDD iMMMM iYYYY')} هـ | ${m.format('DD MMMM YYYY')} م`;
 
-        // 2. إحداثيات الرياض لتقويم أم القرى
-        const coords = new adhan.Coordinates(24.7136, 46.6753);
-        const params = adhan.CalculationMethod.UmmAlQura();
-        params.madhab = adhan.Madhab.Shafi; // العصر حسب المذهب الشافعي (المتبع في السعودية)
+        if (typeof adhan !== 'undefined') {
+            const coords = new adhan.Coordinates(currentLat, currentLon);
+            const params = adhan.CalculationMethod.UmmAlQura();
+            params.madhab = adhan.Madhab.Shafi; 
 
-        // 3. حساب المواقيت
-        const prayerTimes = new adhan.PrayerTimes(coords, now, params);
+            const pt = new adhan.PrayerTimes(coords, now, params);
+            const list = [
+                { name: "الفجر", t: pt.fajr }, { name: "الظهر", t: pt.dhuhr },
+                { name: "العصر", t: pt.asr }, { name: "المغرب", t: pt.maghrib },
+                { name: "العشاء", t: pt.isha }
+            ];
 
-        const list = [
-            { name: "الفجر", t: prayerTimes.fajr },
-            { name: "الظهر", t: prayerTimes.dhuhr },
-            { name: "العصر", t: prayerTimes.asr },
-            { name: "المغرب", t: prayerTimes.maghrib },
-            { name: "العشاء", t: prayerTimes.isha }
-        ];
+            let next = list.find(p => p.t > now);
+            if (!next) {
+                const tom = new Date(); tom.setDate(tom.getDate() + 1);
+                const tPt = new adhan.PrayerTimes(coords, tom, params);
+                next = { name: "الفجر", t: tPt.fajr };
+            }
 
-        // 4. إيجاد الصلاة القادمة
-        let next = list.find(p => p.t > now);
-        if (!next) {
-            const tom = new Date(); tom.setDate(tom.getDate() + 1);
-            const tTimes = new adhan.PrayerTimes(coords, tom, params);
-            next = { name: "الفجر", t: tTimes.fajr };
+            const diff = next.t - now;
+            const dur = moment.duration(diff);
+            const h = String(Math.floor(dur.asHours())).padStart(2, '0');
+            const mn = String(dur.minutes()).padStart(2, '0');
+            const s = String(dur.seconds()).padStart(2, '0');
+
+            document.getElementById('prayerTimer').innerHTML = `صلاة <b>${next.name}</b> بعد: ${h}:${mn}:${s}`;
         }
-
-        // 5. حساب المتبقي
-        const diff = next.t - now;
-        const dur = moment.duration(diff);
-        const h = String(Math.floor(dur.asHours())).padStart(2, '0');
-        const mn = String(dur.minutes()).padStart(2, '0');
-        const s = String(dur.seconds()).padStart(2, '0');
-
-        document.getElementById('prayerTimer').innerHTML = `صلاة <b>${next.name}</b> بعد: ${h}:${mn}:${s}`;
     }
 
-    setInterval(updateClock, 1000);
-
+    // بقية الدوال (التاريخ والعمر) باقية كما هي دون تغيير
     function initDateDropdowns() {
         const isH = document.getElementById('hijri').checked, isT = document.getElementById('modeTarget').checked;
         const d = document.getElementById('day'), m = document.getElementById('month'), y = document.getElementById('year');
@@ -131,7 +163,7 @@
         document.getElementById('resBox').style.display = 'block';
     }
 
-    window.onload = () => { initDateDropdowns(); updateClock(); };
+    window.onload = () => { initDateDropdowns(); setInterval(updateClock, 1000); };
 </script>
 </body>
 </html>
