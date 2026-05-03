@@ -18,6 +18,7 @@
         .top-bar { width: 100%; max-width: 600px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 24px; margin-bottom: 20px; text-align: center; backdrop-filter: blur(15px); }
         .time { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: var(--secondary); display: block; }
         .prayer-countdown { margin-top: 10px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid var(--accent); border-radius: 15px; color: var(--accent); font-size: 1.1rem; font-weight: bold; }
+        .loc-info { font-size: 0.8rem; color: #94a3b8; margin-top: 8px; }
         .container { width: 100%; max-width: 500px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         .toggle-group { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
         .toggle-group input { display: none; }
@@ -36,7 +37,7 @@
 <div class="top-bar">
     <span class="time" id="liveClock">00:00:00</span>
     <div class="prayer-countdown" id="prayerTimer">جاري الحساب...</div>
-    <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;"><i class="fa-solid fa-location-dot"></i> الرياض - تقويم أم القرى</div>
+    <div class="loc-info" id="locDisplay"><i class="fa-solid fa-location-dot"></i> جاري تحديد مدينتك...</div>
     <div id="liveDate" style="margin-top: 10px; font-size: 0.9rem; color: #94a3b8;"></div>
 </div>
 
@@ -61,48 +62,65 @@
 <footer>تم التطوير بواسطة <span style="color:var(--secondary); font-weight:bold;">أبو نواف 2026</span></footer>
 
 <script>
+    // إحداثيات افتراضية (الرياض) في حال رفض المستخدم مشاركة الموقع
+    let currentLat = 24.7136;
+    let currentLon = 46.6753;
+    let locationStatus = "الرياض (افتراضي)";
+
+    // دالة لجلب الموقع الحقيقي
+    function detectLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    currentLat = position.coords.latitude;
+                    currentLon = position.coords.longitude;
+                    locationStatus = "موقعك الحالي (مُفعّل)";
+                    document.getElementById('locDisplay').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${locationStatus}`;
+                },
+                (error) => {
+                    locationStatus = "الرياض (الافتراضية)";
+                    document.getElementById('locDisplay').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${locationStatus}`;
+                }
+            );
+        }
+    }
+
     function updateClock() {
-        // 1. الحصول على الوقت الحالي
         const now = new Date();
         const m = moment(now);
         document.getElementById('liveClock').innerText = m.format('hh:mm:ss A');
         document.getElementById('liveDate').innerText = `${m.format('iDD iMMMM iYYYY')} هـ | ${m.format('DD MMMM YYYY')} م`;
 
-        // 2. إحداثيات الرياض لتقويم أم القرى
-        const coords = new adhan.Coordinates(24.7136, 46.6753);
-        const params = adhan.CalculationMethod.UmmAlQura();
-        params.madhab = adhan.Madhab.Shafi; // العصر حسب المذهب الشافعي (المتبع في السعودية)
+        if (typeof adhan !== 'undefined') {
+            const coords = new adhan.Coordinates(currentLat, currentLon);
+            const params = adhan.CalculationMethod.UmmAlQura();
+            params.madhab = adhan.Madhab.Shafi; 
 
-        // 3. حساب المواقيت
-        const prayerTimes = new adhan.PrayerTimes(coords, now, params);
+            const prayerTimes = new adhan.PrayerTimes(coords, now, params);
+            const list = [
+                { name: "الفجر", t: prayerTimes.fajr },
+                { name: "الظهر", t: prayerTimes.dhuhr },
+                { name: "العصر", t: prayerTimes.asr },
+                { name: "المغرب", t: prayerTimes.maghrib },
+                { name: "العشاء", t: prayerTimes.isha }
+            ];
 
-        const list = [
-            { name: "الفجر", t: prayerTimes.fajr },
-            { name: "الظهر", t: prayerTimes.dhuhr },
-            { name: "العصر", t: prayerTimes.asr },
-            { name: "المغرب", t: prayerTimes.maghrib },
-            { name: "العشاء", t: prayerTimes.isha }
-        ];
+            let next = list.find(p => p.t > now);
+            if (!next) {
+                const tom = new Date(); tom.setDate(tom.getDate() + 1);
+                const tTimes = new adhan.PrayerTimes(coords, tom, params);
+                next = { name: "الفجر", t: tTimes.fajr };
+            }
 
-        // 4. إيجاد الصلاة القادمة
-        let next = list.find(p => p.t > now);
-        if (!next) {
-            const tom = new Date(); tom.setDate(tom.getDate() + 1);
-            const tTimes = new adhan.PrayerTimes(coords, tom, params);
-            next = { name: "الفجر", t: tTimes.fajr };
+            const diff = next.t - now;
+            const dur = moment.duration(diff);
+            const h = String(Math.floor(dur.asHours())).padStart(2, '0');
+            const mn = String(dur.minutes()).padStart(2, '0');
+            const s = String(dur.seconds()).padStart(2, '0');
+
+            document.getElementById('prayerTimer').innerHTML = `صلاة <b>${next.name}</b> بعد: ${h}:${mn}:${s}`;
         }
-
-        // 5. حساب المتبقي
-        const diff = next.t - now;
-        const dur = moment.duration(diff);
-        const h = String(Math.floor(dur.asHours())).padStart(2, '0');
-        const mn = String(dur.minutes()).padStart(2, '0');
-        const s = String(dur.seconds()).padStart(2, '0');
-
-        document.getElementById('prayerTimer').innerHTML = `صلاة <b>${next.name}</b> بعد: ${h}:${mn}:${s}`;
     }
-
-    setInterval(updateClock, 1000);
 
     function initDateDropdowns() {
         const isH = document.getElementById('hijri').checked, isT = document.getElementById('modeTarget').checked;
@@ -131,7 +149,11 @@
         document.getElementById('resBox').style.display = 'block';
     }
 
-    window.onload = () => { initDateDropdowns(); updateClock(); };
+    window.onload = () => { 
+        detectLocation(); // بدء تحديد الموقع فور التحميل
+        initDateDropdowns(); 
+        setInterval(updateClock, 1000); 
+    };
 </script>
 </body>
 </html>
