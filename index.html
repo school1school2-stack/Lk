@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المحلل الزمني الذكي - هجري وميلادي</title>
+    <title>المحلل الزمني الاحترافي | أبو نواف</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
@@ -23,154 +23,159 @@
             font-family: 'Cairo', sans-serif;
             background: var(--bg);
             color: #f8fafc;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             min-height: 100vh; padding: 15px;
         }
 
         .container {
             width: 100%; max-width: 500px;
             background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 28px; padding: 35px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            border-radius: 28px; padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
         }
 
-        h1 { text-align: center; margin-bottom: 25px; font-size: 1.6rem; background: linear-gradient(45deg, #818cf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h1 { text-align: center; margin-bottom: 25px; font-size: 1.6rem; color: var(--secondary); text-shadow: 0 0 10px rgba(6, 182, 212, 0.3); }
 
-        .selector-group {
-            display: flex; gap: 10px; margin-bottom: 20px;
-            background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px;
+        .section-label { font-size: 0.85rem; color: #94a3b8; margin: 15px 0 8px; display: block; }
+
+        /* أزرار الاختيار */
+        .toggle-group {
+            display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 10px;
         }
-
-        .selector-group input { display: none; }
-        .selector-group label {
-            flex: 1; text-align: center; padding: 10px; border-radius: 10px;
-            cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 0.9rem;
+        .toggle-group input { display: none; }
+        .toggle-group label {
+            flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 9px; transition: 0.3s; font-size: 0.9rem;
         }
+        input:checked + label { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        #typeHijri:checked + label[for="typeHijri"],
-        #typeGregorian:checked + label[for="typeGregorian"] {
-            background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-        }
-
-        .input-wrapper { margin-bottom: 20px; }
-        input[type="text"], input[type="date"] {
+        input[type="date"], input[type="text"] {
             width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155;
-            background: #1e293b; color: white; font-size: 1rem; text-align: center;
+            background: #1e293b; color: white; text-align: center; font-size: 1rem; outline: none;
         }
+        input:focus { border-color: var(--secondary); }
 
-        .btn-main {
-            width: 100%; padding: 14px; border-radius: 12px; border: none;
+        .calc-btn {
+            width: 100%; padding: 15px; border-radius: 12px; border: none; margin-top: 20px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white; font-weight: 700; cursor: pointer; transition: 0.3s;
+            color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s;
         }
-        .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .calc-btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 10px 20px rgba(79, 102, 229, 0.3); }
 
-        .results { margin-top: 25px; display: none; animation: fadeIn 0.6s ease; }
+        /* النتائج */
+        .results { margin-top: 25px; display: none; animation: slideUp 0.5s ease; }
         .res-card {
-            background: rgba(255,255,255,0.03); border-right: 4px solid var(--secondary);
-            padding: 15px; border-radius: 12px; margin-bottom: 12px;
+            background: rgba(255,255,255,0.03); padding: 18px; border-radius: 15px; margin-bottom: 12px;
+            border-right: 4px solid var(--secondary);
         }
         .res-card h4 { font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
-        .res-card p { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        .res-card p { font-size: 1.2rem; font-weight: bold; color: #fff; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        footer {
+            text-align: center; font-size: 0.95rem; color: #64748b;
+            padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 500px;
+        }
+        .name-tag { font-weight: bold; background: linear-gradient(to left, #818cf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1><i class="fa-solid fa-calendar-alt"></i> حاسبة التاريخ الذكية</h1>
+    <h1><i class="fa-solid fa-clock"></i> المحلل الزمني الذكي</h1>
 
-    <div class="selector-group">
-        <input type="radio" name="calType" id="typeGregorian" value="greg" checked onchange="toggleInput()">
-        <label for="typeGregorian">ميلادي</label>
-        
-        <input type="radio" name="calType" id="typeHijri" value="hijri" onchange="toggleInput()">
-        <label for="typeHijri">هجري</label>
+    <span class="section-label">1. نوع التقويم:</span>
+    <div class="toggle-group">
+        <input type="radio" name="cal" id="miladi" value="g" checked onchange="toggleUI()">
+        <label for="miladi">ميلادي</label>
+        <input type="radio" name="cal" id="hijri" value="h" onchange="toggleUI()">
+        <label for="hijri">هجري</label>
     </div>
 
-    <div class="input-wrapper" id="dateContainer">
-        <input type="date" id="gregInput">
+    <span class="section-label">2. المطلوب حسابه:</span>
+    <div class="toggle-group">
+        <input type="radio" name="mode" id="modeAge" value="age" checked>
+        <label for="modeAge">حساب العمر</label>
+        <input type="radio" name="mode" id="modeTarget" value="target">
+        <label for="modeTarget">المتبقي للتاريخ</label>
     </div>
 
-    <button class="btn-main" onclick="process()">تحليل التاريخ</button>
+    <span class="section-label">3. أدخل التاريخ:</span>
+    <div id="inputArea">
+        <input type="date" id="dateVal">
+    </div>
 
-    <div class="results" id="resultsBox">
+    <button class="calc-btn" onclick="execute()">تحليل البيانات</button>
+
+    <div class="results" id="resBox">
         <div class="res-card">
-            <h4>التاريخ المقابل</h4>
-            <p id="convertedDate">-</p>
+            <h4 id="labelConv">التاريخ المقابل</h4>
+            <p id="valConv">-</p>
         </div>
         <div class="res-card" style="border-right-color: #22c55e;">
-            <h4>العمر الحالي</h4>
-            <p id="ageResult">-</p>
-        </div>
-        <div class="res-card" style="border-right-color: var(--accent);">
-            <h4>متبقي على الموعد القادم</h4>
-            <p id="countdownResult">-</p>
+            <h4 id="labelMain">النتيجة التحليلية</h4>
+            <p id="valMain">-</p>
         </div>
     </div>
 </div>
 
+<footer>
+    تم التطوير بواسطة <span class="name-tag">أبو نواف 2026</span>
+</footer>
+
 <script>
-    // تغيير شكل الإدخال بناءً على النوع المختصر
-    function toggleInput() {
-        const isHijri = document.getElementById('typeHijri').checked;
-        const container = document.getElementById('dateContainer');
-        if(isHijri) {
-            container.innerHTML = `<input type="text" id="hijriInput" placeholder="السنة/الشهر/اليوم مثلاً: 1445/08/15">`;
-        } else {
-            container.innerHTML = `<input type="date" id="gregInput">`;
-        }
+    function toggleUI() {
+        const isH = document.getElementById('hijri').checked;
+        document.getElementById('inputArea').innerHTML = isH ? 
+            `<input type="text" id="dateVal" placeholder="مثال: 1447/05/20">` : 
+            `<input type="date" id="dateVal">`;
     }
 
-    function process() {
-        const isHijri = document.getElementById('typeHijri').checked;
-        let mDate;
+    function execute() {
+        const isH = document.getElementById('hijri').checked;
+        const isAgeMode = document.getElementById('modeAge').checked;
+        const rawVal = document.getElementById('dateVal').value;
+        
+        if(!rawVal) return alert("يرجى إدخال التاريخ");
 
-        if(isHijri) {
-            const val = document.getElementById('hijriInput').value;
-            mDate = moment(val, 'iYYYY/iMM/iDD');
-            if(!mDate.isValid()) return alert("خطأ في صيغة التاريخ الهجري (YYYY/MM/DD)");
-        } else {
-            const val = document.getElementById('gregInput').value;
-            if(!val) return alert("اختر التاريخ");
-            mDate = moment(val);
-        }
+        let mDate = isH ? moment(rawVal, 'iYYYY/iMM/iDD') : moment(rawVal);
+        if(!mDate.isValid()) return alert("صيغة التاريخ غير صحيحة");
 
         const now = moment();
         
-        // 1. التحويل
-        const displayConverted = isHijri ? mDate.format('YYYY-MM-DD') + " ميلادي" : mDate.format('iYYYY/iMM/iDD') + " هجري";
-        document.getElementById('convertedDate').innerText = displayConverted;
+        // عرض التاريخ المقابل
+        document.getElementById('valConv').innerText = isH ? 
+            mDate.format('YYYY-MM-DD') + " ميلادي" : 
+            mDate.format('iYYYY/iMM/iDD') + " هجري";
 
-        // 2. حساب العمر (بناءً على الميلادي للدقة البرمجية)
-        const years = now.diff(mDate, 'years');
-        const months = now.diff(mDate.clone().add(years, 'years'), 'months');
-        const days = now.diff(mDate.clone().add(years, 'years').add(months, 'months'), 'days');
-        
-        // التحقق إذا كان التاريخ في المستقبل
-        if(mDate.isAfter(now)) {
-            document.getElementById('ageResult').innerText = "تاريخ مستقبلي";
+        if (isAgeMode) {
+            // منطق حساب العمر
+            if (mDate.isAfter(now)) {
+                document.getElementById('valMain').innerText = "عذراً، التاريخ في المستقبل!";
+            } else {
+                const y = now.diff(mDate, 'years');
+                const m = now.diff(mDate.clone().add(y, 'years'), 'months');
+                const d = now.diff(mDate.clone().add(y, 'years').add(m, 'months'), 'days');
+                document.getElementById('valMain').innerText = `${y} سنة، ${m} شهر، ${d} يوم`;
+            }
+            document.getElementById('labelMain').innerText = "العمر الحالي:";
         } else {
-            document.getElementById('ageResult').innerText = `${years} سنة، ${months} شهر، ${days} يوم`;
+            // منطق المتبقي حتى التاريخ
+            if (mDate.isBefore(now)) {
+                document.getElementById('valMain').innerText = "عذراً، هذا التاريخ قد مضى!";
+            } else {
+                const y = mDate.diff(now, 'years');
+                const m = mDate.diff(now.clone().add(y, 'years'), 'months');
+                const d = mDate.diff(now.clone().add(y, 'years').add(m, 'months'), 'days');
+                document.getElementById('valMain').innerText = `${y} سنة، ${m} شهر، ${d} يوم`;
+            }
+            document.getElementById('labelMain').innerText = "الوقت المتبقي:";
         }
 
-        // 3. كم باقي (العد التنازلي)
-        let target;
-        if(mDate.isAfter(now)) {
-            target = mDate; // إذا كان الموعد مستقبلاً أصلاً
-        } else {
-            // يوم الميلاد القادم
-            target = mDate.clone().year(now.year());
-            if(target.isBefore(now, 'day')) target.add(1, 'year');
-        }
-
-        const diffDays = target.diff(now, 'days');
-        document.getElementById('countdownResult').innerText = diffDays === 0 ? "الموعد هو اليوم! 🎉" : `متبقي ${diffDays} يوم`;
-
-        document.getElementById('resultsBox').style.display = 'block';
+        document.getElementById('resBox').style.display = 'block';
     }
 </script>
 
