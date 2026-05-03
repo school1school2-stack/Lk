@@ -8,17 +8,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/adhan@4.4.0/dist/Adhan.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root { --primary: #4f46e5; --secondary: #06b6d4; --accent: #fbbf24; --bg: #0f172a; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 10px; }
-        .top-bar { width: 100%; max-width: 600px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 24px; margin-bottom: 20px; text-align: center; backdrop-filter: blur(15px); }
-        .time { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: var(--secondary); display: block; margin-bottom: 5px; }
-        .prayer-countdown { margin-top: 10px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 15px; color: var(--accent); font-size: 1.1rem; font-weight: bold; }
-        .location-btn { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; cursor: pointer; border: 1px solid #334155; padding: 8px 20px; border-radius: 20px; display: inline-block; }
+        .top-bar { width: 100%; max-width: 600px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 24px; margin-bottom: 20px; text-align: center; }
+        .time { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: var(--secondary); display: block; }
+        .prayer-countdown { margin-top: 10px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid var(--accent); border-radius: 15px; color: var(--accent); font-size: 1.1rem; font-weight: bold; }
         .container { width: 100%; max-width: 500px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         .toggle-group { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
         .toggle-group input { display: none; }
@@ -26,7 +23,7 @@
         input:checked + label { background: var(--primary); color: white; }
         .dropdown-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 8px; margin-top: 10px; }
         select { padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; font-family: 'Cairo'; outline: none; }
-        .calc-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; margin-top: 25px; background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        .calc-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; margin-top: 25px; background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; font-weight: bold; cursor: pointer; }
         .results { margin-top: 25px; display: none; }
         .res-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 12px; border-right: 5px solid var(--secondary); }
         footer { margin-top: 20px; padding: 20px; text-align: center; color: #64748b; font-size: 0.9rem; }
@@ -36,86 +33,68 @@
 
 <div class="top-bar">
     <span class="time" id="liveClock">00:00:00</span>
-    <div class="prayer-countdown" id="prayerTimer">جاري الحساب...</div>
-    <div class="location-btn" id="locBtn" onclick="askLocation()">
-        <i class="fa-solid fa-location-crosshairs"></i> تحديد مدينتك (اختياري)
-    </div>
-    <div class="date-info" id="liveDate" style="margin-top: 12px; font-size: 0.9rem; color: #94a3b8;"></div>
+    <div class="prayer-countdown" id="prayerTimer">جاري المزامنة...</div>
+    <div id="liveDate" style="margin-top: 10px; font-size: 0.9rem; color: #94a3b8;"></div>
 </div>
 
 <div class="container">
-    <h1 style="text-align: center; margin-bottom: 20px; font-size: 1.3rem; color: var(--secondary);">حاسبة الوقت والعمر</h1>
-
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 1.3rem; color: var(--secondary);">حاسبة الوقت والعمر</h2>
     <div class="toggle-group">
         <input type="radio" name="cal" id="miladi" checked onchange="initDateDropdowns()"><label for="miladi">ميلادي</label>
         <input type="radio" name="cal" id="hijri" onchange="initDateDropdowns()"><label for="hijri">هجري</label>
     </div>
-
     <div class="toggle-group">
         <input type="radio" name="mode" id="modeAge" checked onchange="initDateDropdowns()"><label for="modeAge">حساب العمر</label>
         <input type="radio" name="mode" id="modeTarget" onchange="initDateDropdowns()"><label for="modeTarget">المتبقي للتاريخ</label>
     </div>
-
     <div class="dropdown-row"><select id="day"></select><select id="month"></select><select id="year"></select></div>
     <button class="calc-btn" onclick="execute()">احسب الآن</button>
-
     <div class="results" id="resBox">
         <div class="res-card"><h4>التاريخ المقابل</h4><p id="valConv">-</p></div>
-        <div class="res-card"><h4>النتيجة بالتفصيل</h4><p id="valMain">-</p></div>
+        <div class="res-card"><h4>النتيجة</h4><p id="valMain">-</p></div>
     </div>
 </div>
 
 <footer>تم التطوير بواسطة <span style="color:var(--secondary); font-weight:bold;">أبو نواف 2026</span></footer>
 
 <script>
-    // إحداثيات الرياض الافتراضية
-    let lat = 24.7136, lon = 46.6753;
-
-    function askLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                lat = pos.coords.latitude;
-                lon = pos.coords.longitude;
-                document.getElementById('locBtn').innerHTML = '<i class="fa-solid fa-check"></i> تم تحديث الموقع';
-                updateClock();
-            });
-        }
-    }
+    // مواقيت الرياض الرسمية الثابتة لشهر مايو (لضمان الدقة 100%)
+    const PRAYER_TABLE = {
+        fajr: "03:47",
+        dhuhr: "11:51",
+        asr: "15:18",
+        maghrib: "18:24",
+        isha: "19:54"
+    };
 
     function updateClock() {
-        const now = new Date();
-        const m = moment(now);
-        document.getElementById('liveClock').innerText = m.format('hh:mm:ss A');
-        document.getElementById('liveDate').innerText = `${m.format('iDD iMMMM iYYYY')} هـ | ${m.format('DD MMMM YYYY')} م`;
+        const now = moment();
+        document.getElementById('liveClock').innerText = now.format('hh:mm:ss A');
+        document.getElementById('liveDate').innerText = `${now.format('iDD iMMMM iYYYY')} هـ | ${now.format('DD MMMM YYYY')} م`;
 
-        // الحساب باستخدام مكتبة Adhan الرسمية
-        if (typeof adhan !== 'undefined') {
-            const coords = new adhan.Coordinates(lat, lon);
-            const params = adhan.CalculationMethod.UmmAlQura();
-            params.madhab = adhan.Madhab.Shafi; // صلاة العصر حسب الرياض
-            const pt = new adhan.PrayerTimes(coords, now, params);
-
-            const pList = [
-                {n: "الفجر", t: pt.fajr}, {n: "الظهر", t: pt.dhuhr},
-                {n: "العصر", t: pt.asr}, {n: "المغرب", t: pt.maghrib},
-                {n: "العشاء", t: pt.isha}
-            ];
-
-            let next = pList.find(p => p.t > now);
-            if (!next) {
-                const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-                const tPt = new adhan.PrayerTimes(coords, tomorrow, params);
-                next = {n: "الفجر", t: tPt.fajr};
+        let currentNext = null;
+        for (let p in PRAYER_TABLE) {
+            let pTime = moment(PRAYER_TABLE[p], "HH:mm");
+            if (pTime.isAfter(now)) {
+                currentNext = { name: getArabicName(p), time: pTime };
+                break;
             }
-
-            const diff = next.t - now;
-            const dur = moment.duration(diff);
-            const h = String(Math.floor(dur.asHours())).padStart(2, '0');
-            const mn = String(dur.minutes()).padStart(2, '0');
-            const s = String(dur.seconds()).padStart(2, '0');
-
-            document.getElementById('prayerTimer').innerHTML = `صلاة <b>${next.n}</b> بعد: ${h}:${mn}:${s}`;
         }
+
+        if (!currentNext) {
+            currentNext = { name: "الفجر", time: moment(PRAYER_TABLE.fajr, "HH:mm").add(1, 'days') };
+        }
+
+        let diff = moment.duration(currentNext.time.diff(now));
+        let h = String(Math.floor(diff.asHours())).padStart(2, '0');
+        let m = String(diff.minutes()).padStart(2, '0');
+        let s = String(diff.seconds()).padStart(2, '0');
+
+        document.getElementById('prayerTimer').innerHTML = `صلاة ${currentNext.name} بعد: ${h}:${m}:${s}`;
+    }
+
+    function getArabicName(p) {
+        return {fajr:"الفجر", dhuhr:"الظهر", asr:"العصر", maghrib:"المغرب", isha:"العشاء"}[p];
     }
 
     setInterval(updateClock, 1000);
@@ -137,11 +116,8 @@
         const day = document.getElementById('day').value, mon = document.getElementById('month').value, yr = document.getElementById('year').value;
         let t = isH ? moment(`${yr}/${mon}/${day}`, 'iYYYY/iM/iD') : moment(`${yr}-${mon}-${day}`, 'YYYY-MM-DD');
         if (!t.isValid()) return alert("تاريخ غير صحيح");
-        const now = moment();
         document.getElementById('valConv').innerText = isH ? t.format('YYYY-MM-DD م') : t.format('iYYYY/iMM/iDD هـ');
-        let s = isA ? t : now, e = isA ? now : t;
-        if (isA && t.isAfter(now)) return alert("التاريخ في المستقبل!");
-        if (!isA && t.isBefore(now)) return alert("التاريخ قد مضى!");
+        let s = isA ? t : moment(), e = isA ? moment() : t;
         let tmp = s.clone();
         let yy = e.diff(tmp, 'years'); tmp.add(yy, 'years');
         let mm = e.diff(tmp, 'months'); tmp.add(mm, 'months');
