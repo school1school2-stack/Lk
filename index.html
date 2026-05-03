@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المحلل الزمني الاحترافي | أبو نواف</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -15,7 +15,7 @@
             --primary: #4f46e5;
             --secondary: #06b6d4;
             --bg: #0f172a;
-            --card-glass: rgba(30, 41, 59, 0.7);
+            --card-glass: rgba(30, 41, 59, 0.8);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,62 +23,71 @@
             font-family: 'Cairo', sans-serif;
             background: var(--bg);
             color: #f8fafc;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 15px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 10px;
         }
+
+        /* شريط التوقيت العلوي */
+        .top-bar {
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.1), rgba(6, 182, 212, 0.1));
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .top-bar .time { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .top-bar .date-info { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
 
         .container {
             width: 100%; max-width: 500px;
             background: var(--card-glass);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 28px; padding: 30px;
+            border-radius: 28px; padding: 25px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5);
             margin-bottom: 20px;
         }
 
-        h1 { text-align: center; margin-bottom: 25px; font-size: 1.6rem; color: var(--secondary); text-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+        h1 { text-align: center; margin-bottom: 20px; font-size: 1.4rem; color: var(--secondary); }
 
-        .section-label { font-size: 0.85rem; color: #94a3b8; margin: 15px 0 8px; display: block; }
+        .section-label { font-size: 0.8rem; color: #94a3b8; margin: 12px 0 6px; display: block; }
 
         .toggle-group {
             display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px;
         }
         .toggle-group input { display: none; }
         .toggle-group label {
-            flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 9px; transition: 0.3s; font-size: 0.9rem;
+            flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 9px; transition: 0.3s; font-size: 0.85rem;
         }
         input:checked + label { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        .dropdown-row {
-            display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 10px; margin-bottom: 10px;
-        }
-
+        .dropdown-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 8px; }
         select {
-            padding: 12px; border-radius: 12px; border: 1px solid #334155;
-            background: #1e293b; color: white; font-family: 'Cairo';
-            font-size: 0.9rem; outline: none; cursor: pointer; transition: 0.3s;
+            padding: 12px; border-radius: 10px; border: 1px solid #334155;
+            background: #1e293b; color: white; font-family: 'Cairo'; font-size: 0.85rem; outline: none;
         }
-        select:focus { border-color: var(--secondary); }
 
         .calc-btn {
             width: 100%; padding: 15px; border-radius: 12px; border: none; margin-top: 20px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s;
+            color: white; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.3s;
         }
         .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(79, 102, 229, 0.3); }
 
-        .results { margin-top: 25px; display: none; animation: fadeIn 0.5s ease; }
+        .results { margin-top: 20px; display: none; animation: fadeIn 0.5s ease; }
         .res-card {
-            background: rgba(255,255,255,0.03); padding: 18px; border-radius: 15px; margin-bottom: 12px;
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; margin-bottom: 10px;
             border-right: 4px solid var(--secondary);
         }
-        .res-card h4 { font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
-        .res-card p { font-size: 1.15rem; font-weight: bold; color: #fff; }
+        .res-card h4 { font-size: 0.75rem; color: #94a3b8; }
+        .res-card p { font-size: 1.1rem; font-weight: bold; }
 
         footer {
-            text-align: center; font-size: 1rem; color: #64748b;
-            padding: 15px; width: 100%; border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center; font-size: 1rem; color: #64748b; padding: 20px; width: 100%;
         }
         .name-tag { font-weight: bold; background: linear-gradient(to left, #818cf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
@@ -87,8 +96,13 @@
 </head>
 <body>
 
+<div class="top-bar">
+    <span class="time" id="liveClock">00:00:00</span>
+    <div class="date-info" id="liveDate">جارِ تحميل التاريخ...</div>
+</div>
+
 <div class="container">
-    <h1><i class="fa-solid fa-hourglass-start"></i> المحلل الزمني الذكي</h1>
+    <h1><i class="fa-solid fa-calendar-check"></i> المحلل الزمني الذكي</h1>
 
     <span class="section-label">1. نوع التقويم:</span>
     <div class="toggle-group">
@@ -127,6 +141,17 @@
     const hMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"];
     const gMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 
+    // تحديث الساعة والتاريخ العلوي
+    function updateLiveClock() {
+        const now = moment();
+        document.getElementById('liveClock').innerText = now.format('hh:mm:ss A');
+        document.getElementById('liveDate').innerHTML = `
+            ${now.format('iDD iMMMM iYYYY')} هـ <br>
+            ${now.format('DD MMMM YYYY')} م
+        `;
+    }
+    setInterval(updateLiveClock, 1000);
+
     function initDateDropdowns() {
         const isH = document.getElementById('hijri').checked;
         const dSelect = document.getElementById('day');
@@ -141,7 +166,7 @@
         months.forEach((m, idx) => { mSelect.innerHTML += `<option value="${idx + 1}">${m}</option>`; });
 
         ySelect.innerHTML = "";
-        const currentY = isH ? 1447 : 2026;
+        const currentY = isH ? moment().iYear() : moment().year();
         const startY = isH ? 1350 : 1940;
         const endY = isH ? 1500 : 2060;
         for(let i=endY; i>=startY; i--) { ySelect.innerHTML += `<option value="${i}" ${i === currentY ? 'selected' : ''}>${i}</option>`; }
@@ -155,23 +180,22 @@
         const y = document.getElementById('year').value;
 
         let mDate = isH ? moment(`${y}/${m}/${d}`, 'iYYYY/iM/iD') : moment(`${y}-${m}-${d}`, 'YYYY-M-D');
-        if(!mDate.isValid()) return alert("عذراً، التاريخ المختار غير صحيح في التقويم!");
+        if(!mDate.isValid()) return alert("التاريخ غير صحيح!");
 
         const now = moment();
         document.getElementById('valConv').innerText = isH ? mDate.format('YYYY-MM-DD') + " ميلادي" : mDate.format('iYYYY/iMM/iDD') + " هجري";
 
-        let labelMain = isAgeMode ? "العمر الحالي:" : "الوقت المتبقي:";
-        document.getElementById('labelMain').innerText = labelMain;
+        document.getElementById('labelMain').innerText = isAgeMode ? "العمر الحالي:" : "الوقت المتبقي:";
 
         if (isAgeMode) {
             if (mDate.isAfter(now)) {
-                document.getElementById('valMain').innerText = "عذراً، التاريخ في المستقبل!";
+                document.getElementById('valMain').innerText = "التاريخ في المستقبل!";
             } else {
                 displayDiff(mDate, now);
             }
         } else {
             if (mDate.isBefore(now)) {
-                document.getElementById('valMain').innerText = "عذراً، هذا التاريخ قد مضى!";
+                document.getElementById('valMain').innerText = "هذا التاريخ قد مضى!";
             } else {
                 displayDiff(now, mDate);
             }
@@ -180,16 +204,19 @@
     }
 
     function displayDiff(start, end) {
-        const diffYears = end.diff(start, 'years');
-        start.add(diffYears, 'years');
-        const diffMonths = end.diff(start, 'months');
-        start.add(diffMonths, 'months');
-        const diffDays = end.diff(start, 'days');
-        
-        document.getElementById('valMain').innerText = `${diffYears} سنة و ${diffMonths} شهر و ${diffDays} يوم`;
+        let tempStart = start.clone();
+        const years = end.diff(tempStart, 'years');
+        tempStart.add(years, 'years');
+        const months = end.diff(tempStart, 'months');
+        tempStart.add(months, 'months');
+        const days = end.diff(tempStart, 'days');
+        document.getElementById('valMain').innerText = `${years} سنة و ${months} شهر و ${days} يوم`;
     }
 
-    window.onload = initDateDropdowns;
+    window.onload = () => {
+        updateLiveClock();
+        initDateDropdowns();
+    };
 </script>
 
 </body>
