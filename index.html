@@ -14,31 +14,37 @@
         :root { --primary: #4f46e5; --secondary: #06b6d4; --accent: #fbbf24; --bg: #0f172a; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 10px; }
+        
         .top-bar { width: 100%; max-width: 600px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 24px; margin-bottom: 20px; text-align: center; backdrop-filter: blur(15px); }
         .time { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: var(--secondary); display: block; margin-bottom: 5px; }
-        .prayer-countdown { margin-top: 10px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 15px; color: var(--accent); font-size: 1.1rem; font-weight: bold; }
-        .location-btn { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; cursor: pointer; border: 1px solid #334155; padding: 5px 15px; border-radius: 20px; transition: 0.3s; }
-        .location-btn:hover { background: var(--primary); color: white; }
+        
+        .prayer-countdown { margin-top: 10px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 15px; color: var(--accent); font-size: 1.1rem; font-weight: bold; min-height: 50px; }
+        
+        .location-btn { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; cursor: pointer; border: 1px solid #334155; padding: 8px 20px; border-radius: 20px; transition: 0.3s; display: inline-block; background: rgba(0,0,0,0.2); }
+        .location-btn.active { background: #22c55e; color: white; border-color: #22c55e; }
+
         .container { width: 100%; max-width: 500px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         .toggle-group { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
         .toggle-group input { display: none; }
-        .toggle-group label { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 9px; font-size: 0.85rem; transition: 0.3s; }
+        .toggle-group label { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 9px; font-size: 0.85rem; }
         input:checked + label { background: var(--primary); color: white; }
+
         .dropdown-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 8px; margin-top: 10px; }
         select { padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; font-family: 'Cairo'; outline: none; }
+        
         .calc-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; margin-top: 25px; background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
         .results { margin-top: 25px; display: none; }
         .res-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 12px; border-right: 5px solid var(--secondary); }
-        footer { margin-top: 20px; padding: 20px; text-align: center; color: #64748b; }
+        footer { margin-top: 20px; padding: 20px; text-align: center; color: #64748b; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
     <span class="time" id="liveClock">00:00:00</span>
-    <div class="prayer-countdown" id="prayerTimer">بانتظار الإحداثيات...</div>
+    <div class="prayer-countdown" id="prayerTimer">جاري تهيئة النظام...</div>
     <div class="location-btn" id="locBtn" onclick="askLocation()">
-        <i class="fa-solid fa-location-crosshairs"></i> اضغط هنا لتحديد مدينتك بدقة
+        <i class="fa-solid fa-location-crosshairs"></i> تحديد مدينتك بدقة
     </div>
     <div class="date-info" id="liveDate" style="margin-top: 12px; font-size: 0.9rem; color: #94a3b8;"></div>
 </div>
@@ -67,60 +73,73 @@
 
 <footer>تم التطوير بواسطة <span style="color:var(--secondary); font-weight:bold;">أبو نواف 2026</span></footer>
 
-<script src="https://cdn.jsdelivr.net/npm/adhan@4.4.0/dist/Adhan.min.js"></script>
-
 <script>
-    let lat = 24.7136, lon = 46.6753; // الرياض كافتراضي
+    // إحداثيات الرياض كافتراضي
+    let userLat = 24.7136, userLon = 46.6753;
 
     function askLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
-                lat = pos.coords.latitude;
-                lon = pos.coords.longitude;
-                document.getElementById('locBtn').innerHTML = '<i class="fa-solid fa-check"></i> تم التحديد بنجاح';
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+                document.getElementById('locBtn').innerHTML = '<i class="fa-solid fa-check"></i> تم تحديد موقعك';
+                document.getElementById('locBtn').classList.add('active');
                 updateClock();
-            }, (err) => {
-                alert("يرجى تفعيل الـ GPS في جهازك للسماح للمتصفح بالوصول لموقعك.");
-            });
+            }, () => { alert("يرجى تفعيل الموقع في المتصفح."); });
         }
     }
 
-    function updateClock() {
+    // دالة حساب المواقيت (أم القرى) بدون مكتبات خارجية
+    function calculatePrayers(lat, lon) {
         const now = new Date();
-        const m = moment(now);
-        document.getElementById('liveClock').innerText = m.format('hh:mm:ss A');
-        document.getElementById('liveDate').innerText = `${m.format('iDD iMMMM iYYYY')} هـ | ${m.format('DD MMMM YYYY')} م`;
+        const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+        
+        // معادلة جيبية لمحاكاة حركة الشمس وتقويم أم القرى
+        const declination = 23.45 * Math.sin((360 / 365) * (dayOfYear - 81) * Math.PI / 180);
+        const timeOffset = 9.87 * Math.sin(2 * (360 / 365) * (dayOfYear - 81) * Math.PI / 180) - 7.53 * Math.cos((360 / 365) * (dayOfYear - 81) * Math.PI / 180);
+        
+        // توقيت الظهر التقريبي (الرياض GMT+3)
+        let dhuhr = 12 + (45 - lon) / 15 - timeOffset / 60;
+        
+        // حساب الفجر والمغرب بناءً على الزاوية (18.5 درجة لأم القرى)
+        const angle = 18.5 * Math.PI / 180;
+        const latRad = lat * Math.PI / 180;
+        const decRad = declination * Math.PI / 180;
+        
+        const hourAngle = Math.acos((-Math.sin(angle) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad))) * 180 / Math.PI;
+        const diffHours = hourAngle / 15;
 
-        // الحساب باستخدام مكتبة Adhan
-        try {
-            const coords = new adhan.Coordinates(lat, lon);
-            const params = adhan.CalculationMethod.UmmAlQura();
-            params.madhab = adhan.Madhab.Shafi;
-            const pt = new adhan.PrayerTimes(coords, now, params);
+        return {
+            "الفجر": dhuhr - diffHours,
+            "الظهر": dhuhr,
+            "العصر": dhuhr + 3.4, // تقريبي للمذهب الشافعي
+            "المغرب": dhuhr + diffHours,
+            "العشاء": dhuhr + diffHours + 1.5 // 90 دقيقة بعد المغرب
+        };
+    }
 
-            const pMap = [
-                {n: "الفجر", t: pt.fajr}, {n: "الظهر", t: pt.dhuhr},
-                {n: "العصر", t: pt.asr}, {n: "المغرب", t: pt.maghrib},
-                {n: "العشاء", t: pt.isha}
-            ];
+    function updateClock() {
+        const now = moment();
+        document.getElementById('liveClock').innerText = now.format('hh:mm:ss A');
+        document.getElementById('liveDate').innerText = `${now.format('iDD iMMMM iYYYY')} هـ | ${now.format('DD MMMM YYYY')} م`;
 
-            let next = pMap.find(p => p.t > now);
-            if (!next) {
-                const tom = new Date(); tom.setDate(tom.getDate()+1);
-                const tPt = new adhan.PrayerTimes(coords, tom, params);
-                next = {n: "الفجر", t: tPt.fajr};
-            }
+        const prayers = calculatePrayers(userLat, userLon);
+        const nowDecimal = now.hours() + now.minutes() / 60 + now.seconds() / 3600;
 
-            const diff = next.t - now;
-            const dur = moment.duration(diff);
-            const h = String(Math.floor(dur.asHours())).padStart(2, '0');
-            const mn = String(dur.minutes()).padStart(2, '0');
-            const s = String(dur.seconds()).padStart(2, '0');
+        let nextName = "الفجر", nextTime = prayers["الفجر"];
+        if (nowDecimal < prayers["الفجر"]) { nextName = "الفجر"; nextTime = prayers["الفجر"]; }
+        else if (nowDecimal < prayers["الظهر"]) { nextName = "الظهر"; nextTime = prayers["الظهر"]; }
+        else if (nowDecimal < prayers["العصر"]) { nextName = "العصر"; nextTime = prayers["العصر"]; }
+        else if (nowDecimal < prayers["المغرب"]) { nextName = "المغرب"; nextTime = prayers["المغرب"]; }
+        else if (nowDecimal < prayers["العشاء"]) { nextName = "العشاء"; nextTime = prayers["العشاء"]; }
+        else { nextName = "الفجر"; nextTime = prayers["الفجر"] + 24; }
 
-            document.getElementById('prayerTimer').innerHTML = `صلاة <b>${next.n}</b> بعد: ${h}:${mn}:${s}`;
-        } catch(e) {
-            document.getElementById('prayerTimer').innerText = "خطأ في حساب المواقيت";
-        }
+        let diffSecs = (nextTime - nowDecimal) * 3600;
+        let h = String(Math.floor(diffSecs / 3600)).padStart(2, '0');
+        let m = String(Math.floor((diffSecs % 3600) / 60)).padStart(2, '0');
+        let s = String(Math.floor(diffSecs % 60)).padStart(2, '0');
+
+        document.getElementById('prayerTimer').innerHTML = `صلاة <b>${nextName}</b> بعد: ${h}:${m}:${s}`;
     }
 
     setInterval(updateClock, 1000);
@@ -159,3 +178,4 @@
 </script>
 </body>
 </html>
+    
