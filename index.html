@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/adhan@4.4.0/dist/Adhan.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -43,7 +44,6 @@
             border: 1px solid rgba(251, 191, 36, 0.3);
             border-radius: 15px; color: var(--accent);
             font-size: 1.1rem; font-weight: bold;
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.05);
         }
 
         .date-info { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; line-height: 1.5; }
@@ -88,7 +88,6 @@
             background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; margin-bottom: 10px;
             border-right: 4px solid var(--secondary);
         }
-        .res-card h4 { font-size: 0.75rem; color: #94a3b8; }
         .res-card p { font-size: 1.1rem; font-weight: bold; }
 
         footer { text-align: center; font-size: 1rem; color: #64748b; padding: 20px; width: 100%; }
@@ -103,7 +102,7 @@
     <span class="time" id="liveClock">00:00:00</span>
     
     <div class="prayer-countdown" id="prayerTimer">
-        <i class="fa-solid fa-mosque"></i> جاري تحديث المواقيت...
+        <i class="fa-solid fa-sync fa-spin"></i> جاري المزامنة مع الرياض...
     </div>
 
     <div class="date-info" id="liveDate"></div>
@@ -146,46 +145,40 @@
 <footer>تم التطوير بواسطة <span class="name-tag">أبو نواف 2026</span></footer>
 
 <script>
-    // نظام حساب المواقيت الذكي لمدينة الرياض (أم القرى)
-    function getAccuratePrayers(date) {
-        const day = date.dayOfYear();
-        // معادلات جيبية دقيقة تحاكي تقويم أم القرى لمدينة الرياض
-        const fajrOffset = Math.sin((day - 40) * 2 * Math.PI / 365) * 25;
-        const maghribOffset = Math.sin((day - 80) * 2 * Math.PI / 365) * 35;
-        const dhuhrOffset = Math.sin((day - 100) * 2 * Math.PI / 365) * 5;
-
-        return [
-            { name: "الفجر", h: 3, m: 55 - Math.round(fajrOffset) },
-            { name: "الظهر", h: 11, m: 51 - Math.round(dhuhrOffset) },
-            { name: "العصر", h: 15, m: 18 + Math.round(maghribOffset / 4) },
-            { name: "المغرب", h: 18, m: 24 + Math.round(maghribOffset) },
-            { name: "العشاء", h: 19, m: 54 + Math.round(maghribOffset) }
-        ];
-    }
-
     function updateLiveStuff() {
-        const now = moment();
-        document.getElementById('liveClock').innerText = now.format('hh:mm:ss A');
-        document.getElementById('liveDate').innerHTML = `${now.format('iDD iMMMM iYYYY')} هـ | ${now.format('DD MMMM YYYY')} م`;
-
-        const prayers = getAccuratePrayers(now);
-        let nextP = null;
+        const now = new Date();
+        const mNow = moment(now);
         
-        for (let p of prayers) {
-            let pTime = moment().hours(p.h).minutes(p.m).seconds(0);
-            if (pTime.isAfter(now)) {
-                nextP = { name: p.name, time: pTime };
-                break;
-            }
-        }
+        document.getElementById('liveClock').innerText = mNow.format('hh:mm:ss A');
+        document.getElementById('liveDate').innerHTML = `${mNow.format('iDD iMMMM iYYYY')} هـ | ${mNow.format('DD MMMM YYYY')} م`;
+
+        // إعدادات الرياض الدقيقة (أم القرى)
+        const coords = new adhan.Coordinates(24.7136, 46.6753); // الرياض
+        const params = adhan.CalculationMethod.UmmAlQura();
+        params.madhab = adhan.Madhab.Shafi; // المذهب المعتمد في أم القرى للعصر
+
+        const prayerTimes = new adhan.PrayerTimes(coords, now, params);
+        
+        const list = [
+            { name: "الفجر", t: prayerTimes.fajr },
+            { name: "الظهر", t: prayerTimes.dhuhr },
+            { name: "العصر", t: prayerTimes.asr },
+            { name: "المغرب", t: prayerTimes.maghrib },
+            { name: "العشاء", t: prayerTimes.isha }
+        ];
+
+        let nextP = list.find(p => p.t > now);
 
         if (!nextP) {
-            const tomorrow = moment().add(1, 'days');
-            const tomorrowPrayers = getAccuratePrayers(tomorrow);
-            nextP = { name: "الفجر", time: tomorrow.hours(tomorrowPrayers[0].h).minutes(tomorrowPrayers[0].m).seconds(0) };
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tTimes = new adhan.PrayerTimes(coords, tomorrow, params);
+            nextP = { name: "الفجر", t: tTimes.fajr };
         }
 
-        const duration = moment.duration(nextP.time.diff(now));
+        const diff = nextP.t - now;
+        const duration = moment.duration(diff);
+        
         const h = String(Math.floor(duration.asHours())).padStart(2, '0');
         const m = String(duration.minutes()).padStart(2, '0');
         const s = String(duration.seconds()).padStart(2, '0');
