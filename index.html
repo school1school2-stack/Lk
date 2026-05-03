@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/adhan@4.4.0/dist/Adhan.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -38,10 +39,11 @@
         .time { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: var(--secondary); display: block; }
         
         .prayer-countdown {
-            margin-top: 10px; padding: 8px;
+            margin-top: 10px; padding: 10px;
             background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
             border-radius: 12px; color: var(--accent);
-            font-size: 0.9rem; font-weight: bold;
+            font-size: 1rem; font-weight: bold;
         }
 
         .date-info { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; line-height: 1.5; }
@@ -100,7 +102,7 @@
     <span class="time" id="liveClock">00:00:00</span>
     
     <div class="prayer-countdown" id="prayerTimer">
-        <i class="fa-solid fa-person-praying"></i> جاري حساب الصلاة القادمة...
+        <i class="fa-solid fa-spinner fa-spin"></i> جاري المزامنة مع أم القرى...
     </div>
 
     <div class="date-info" id="liveDate"></div>
@@ -143,51 +145,64 @@
 <footer>تم التطوير بواسطة <span class="name-tag">أبو نواف 2026</span></footer>
 
 <script>
-    // مواقيت تقريبية للرياض (أم القرى) - يتم تحديثها برمجياً
-    const prayers = [
-        { name: "الفجر", time: "04:05" },
-        { name: "الظهر", time: "11:53" },
-        { name: "العصر", time: "15:20" },
-        { name: "المغرب", time: "18:32" },
-        { name: "العشاء", time: "20:02" }
-    ];
+    // إعدادات أم القرى (مكة المكرمة)
+    const coordinates = new adhan.Coordinates(21.4225, 39.8262); 
+    const params = adhan.CalculationMethod.UmmAlQura();
 
     function updateLiveStuff() {
-        const now = moment();
-        document.getElementById('liveClock').innerText = now.format('hh:mm:ss A');
-        document.getElementById('liveDate').innerHTML = `${now.format('iDD iMMMM iYYYY')} هـ | ${now.format('DD MMMM YYYY')} م`;
+        const now = new Date();
+        const mNow = moment(now);
+        
+        // تحديث الساعة
+        document.getElementById('liveClock').innerText = mNow.format('hh:mm:ss A');
+        
+        // تحديث التاريخ المزدوج
+        document.getElementById('liveDate').innerHTML = 
+            `${mNow.format('iDD iMMMM iYYYY')} هـ | ${mNow.format('DD MMMM YYYY')} م`;
 
-        updatePrayerTimer(now);
-    }
+        // حساب مواقيت الصلاة لليوم
+        const prayerTimes = new adhan.PrayerTimes(coordinates, now, params);
+        
+        // مصفوفة الصوات للبحث
+        const prayerList = [
+            { name: "الفجر", time: prayerTimes.fajr },
+            { name: "الظهر", time: prayerTimes.dhuhr },
+            { name: "العصر", time: prayerTimes.asr },
+            { name: "المغرب", time: prayerTimes.maghrib },
+            { name: "العشاء", time: prayerTimes.isha }
+        ];
 
-    function updatePrayerTimer(now) {
-        let nextPrayer = null;
-        const currentTimeStr = now.format('HH:mm:ss');
-
-        for (let p of prayers) {
-            if (p.time + ":00" > currentTimeStr) {
-                nextPrayer = p;
+        let nextP = null;
+        for (let p of prayerList) {
+            if (p.time > now) {
+                nextP = p;
                 break;
             }
         }
 
-        if (!nextPrayer) nextPrayer = { name: "الفجر", time: prayers[0].time, tomorrow: true };
+        // إذا انتهت صلوات اليوم، نأخذ فجر الغد
+        if (!nextP) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tTimes = new adhan.PrayerTimes(coordinates, tomorrow, params);
+            nextP = { name: "الفجر", time: tTimes.fajr };
+        }
 
-        const pTime = moment(nextPrayer.time, "HH:mm");
-        if (nextPrayer.tomorrow) pTime.add(1, 'days');
-
-        const diff = moment.duration(pTime.diff(now));
-        const h = String(diff.hours()).padStart(2, '0');
-        const m = String(diff.minutes()).padStart(2, '0');
-        const s = String(diff.seconds()).padStart(2, '0');
+        // حساب المتبقي
+        const diffMs = nextP.time - now;
+        const duration = moment.duration(diffMs);
+        
+        const hours = String(duration.hours()).padStart(2, '0');
+        const minutes = String(duration.minutes()).padStart(2, '0');
+        const seconds = String(duration.seconds()).padStart(2, '0');
 
         document.getElementById('prayerTimer').innerHTML = 
-            `<i class="fa-solid fa-clock"></i> متبقي على صلاة <b>${nextPrayer.name}</b>: ${h}:${m}:${s}`;
+            `<i class="fa-solid fa-person-praying"></i> المتبقي لصلاة <b>${nextP.name}</b>: ${hours}:${minutes}:${seconds}`;
     }
 
     setInterval(updateLiveStuff, 1000);
 
-    // دالة تهيئة القوائم المنسدلة (كما في الكود السابق)
+    // دالة تهيئة القوائم المنسدلة
     function initDateDropdowns() {
         const isH = document.getElementById('hijri').checked;
         const dSelect = document.getElementById('day');
@@ -219,14 +234,13 @@
         const now = moment();
         document.getElementById('valConv').innerText = isH ? mDate.format('YYYY-MM-DD') + " ميلادي" : mDate.format('iYYYY/iMM/iDD') + " هجري";
 
-        let start = isAgeMode ? mDate : now;
-        let end = isAgeMode ? now : mDate;
-
         if (isAgeMode && mDate.isAfter(now)) {
             document.getElementById('valMain').innerText = "التاريخ في المستقبل!";
         } else if (!isAgeMode && mDate.isBefore(now)) {
             document.getElementById('valMain').innerText = "التاريخ قد مضى!";
         } else {
+            let start = isAgeMode ? mDate : now;
+            let end = isAgeMode ? now : mDate;
             let temp = start.clone();
             const yy = end.diff(temp, 'years'); temp.add(yy, 'years');
             const mm = end.diff(temp, 'months'); temp.add(mm, 'months');
