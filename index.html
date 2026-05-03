@@ -83,9 +83,10 @@
             background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 12px;
             border-right: 5px solid var(--secondary);
         }
+        .res-card h4 { color: #94a3b8; font-size: 0.8rem; margin-bottom: 5px; }
         .res-card p { font-size: 1.2rem; font-weight: bold; }
 
-        footer { margin-top: auto; padding: 20px; text-align: center; color: #64748b; }
+        footer { margin-top: 20px; padding: 20px; text-align: center; color: #64748b; width: 100%; }
         .name-tag { font-weight: bold; color: var(--secondary); }
     </style>
 </head>
@@ -100,6 +101,7 @@
 <div class="container">
     <h1><i class="fa-solid fa-hourglass-half"></i> حاسبة الوقت والعمر</h1>
 
+    <span style="font-size: 0.8rem; color: #94a3b8;">1. نوع التقويم:</span>
     <div class="toggle-group">
         <input type="radio" name="cal" id="miladi" checked onchange="initDateDropdowns()">
         <label for="miladi">ميلادي</label>
@@ -107,13 +109,15 @@
         <label for="hijri">هجري</label>
     </div>
 
+    <span style="font-size: 0.8rem; color: #94a3b8;">2. المطلوب حسابه:</span>
     <div class="toggle-group">
-        <input type="radio" name="mode" id="modeAge" checked>
+        <input type="radio" name="mode" id="modeAge" checked onchange="initDateDropdowns()">
         <label for="modeAge">حساب العمر</label>
-        <input type="radio" name="mode" id="modeTarget">
+        <input type="radio" name="mode" id="modeTarget" onchange="initDateDropdowns()">
         <label for="modeTarget">المتبقي للتاريخ</label>
     </div>
 
+    <span style="font-size: 0.8rem; color: #94a3b8;">3. اختر التاريخ:</span>
     <div class="dropdown-row">
         <select id="day"></select>
         <select id="month"></select>
@@ -159,7 +163,7 @@
 
         let next = prayers.find(p => p.t.isAfter(now));
         if (!next) {
-            next = { name: "الفجر", t: prayers[0].t.add(1, 'days') };
+            next = { name: "الفجر", t: prayers[0].t.clone().add(1, 'days') };
         }
 
         let diff = moment.duration(next.t.diff(now));
@@ -174,14 +178,33 @@
 
     function initDateDropdowns() {
         const isH = document.getElementById('hijri').checked;
+        const isTarget = document.getElementById('modeTarget').checked;
         const d = document.getElementById('day'), m = document.getElementById('month'), y = document.getElementById('year');
         
+        // الأيام
         d.innerHTML = Array.from({length: 31}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
+        
+        // الشهور
         const months = isH ? ["محرم", "صفر", "ربيع 1", "ربيع 2", "جمادى 1", "جمادى 2", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"] : ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
         m.innerHTML = months.map((name, i) => `<option value="${i+1}">${name}</option>`).join('');
         
+        // السنوات (ديناميكية حسب الاختيار)
         const curY = isH ? moment().iYear() : moment().year();
-        y.innerHTML = Array.from({length: 120}, (_, i) => `<option value="${curY-i}">${curY-i}</option>`).join('');
+        y.innerHTML = "";
+        
+        if (isTarget) {
+            // السنوات القادمة (من الحالية حتى 2050 م أو 1475 هـ)
+            const endLimit = isH ? curY + 30 : curY + 30;
+            for (let i = curY; i <= endLimit; i++) {
+                y.innerHTML += `<option value="${i}">${i}</option>`;
+            }
+        } else {
+            // السنوات الماضية (لحساب العمر)
+            const startLimit = isH ? curY - 100 : curY - 100;
+            for (let i = curY; i >= startLimit; i--) {
+                y.innerHTML += `<option value="${i}">${i}</option>`;
+            }
+        }
     }
 
     function execute() {
@@ -194,11 +217,15 @@
         const now = moment();
         document.getElementById('valConv').innerText = isH ? target.format('YYYY-MM-DD م') : target.format('iYYYY/iMM/iDD هـ');
 
-        let start = isAge ? target : now, end = isAge ? now : target;
+        let start, end;
+        if (isAge) {
+            if (target.isAfter(now)) return alert("تاريخ الميلاد لا يمكن أن يكون في المستقبل!");
+            start = target; end = now;
+        } else {
+            if (target.isBefore(now)) return alert("تاريخ المتبقي لا يمكن أن يكون في الماضي!");
+            start = now; end = target;
+        }
         
-        if (isAge && target.isAfter(now)) return alert("التاريخ في المستقبل!");
-        if (!isAge && target.isBefore(now)) return alert("التاريخ قد مضى!");
-
         let temp = start.clone();
         let yy = end.diff(temp, 'years'); temp.add(yy, 'years');
         let mm = end.diff(temp, 'months'); temp.add(mm, 'months');
